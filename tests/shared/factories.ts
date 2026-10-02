@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { BookInput, Genre } from './types';
+import type { BookInput } from './types';
 
 export const TENANT_HEADER = 'x-test-tenant';
 
@@ -28,7 +28,7 @@ export function bookInput(overrides: Partial<BookInput> = {}): BookInput {
     isbn: uniqueIsbn(),
     price: 19.99,
     stock: 5,
-    genre: 'fiction' as Genre,
+    genre: 'fiction',
     description: 'Created by the automated test suite.',
     publishedYear: 2020,
     ...overrides,

@@ -16,12 +16,15 @@ test.describe('Book form validation', () => {
     const { form } = inventoryPage;
     await form.save();
 
-    await form.expectFieldError('title', 'Title is required');
-    await form.expectFieldError('author', 'Author is required');
-    await form.expectFieldError('isbn', 'ISBN is required');
-    await form.expectFieldError('price', 'Price is required');
-    await form.expectFieldError('stock', 'Stock is required');
-    await form.expectFieldError('genre', 'Genre is required');
+    // Soft, so one run reports every field that is wrong rather than stopping
+    // at the first one.
+    await form.expectFieldErrorSoft('title', 'Title is required');
+    await form.expectFieldErrorSoft('author', 'Author is required');
+    await form.expectFieldErrorSoft('isbn', 'ISBN is required');
+    await form.expectFieldErrorSoft('price', 'Price is required');
+    await form.expectFieldErrorSoft('stock', 'Stock is required');
+    await form.expectFieldErrorSoft('genre', 'Genre is required');
+
     await expect(form.visibleErrors).toHaveCount(6);
     await expect(form.root).toBeVisible();
   });

@@ -98,6 +98,23 @@ export class BookFormDialog {
     await expect(this.field(name)).toHaveAttribute('aria-invalid', 'true');
   }
 
+  /**
+   * Soft variant for tests that check several fields at once. One run then
+   * reports every field that is wrong, instead of stopping at the first and
+   * hiding the rest behind repeated debugging cycles.
+   */
+  async expectFieldErrorSoft(
+    name: BookFormField,
+    message: string | RegExp,
+  ): Promise<void> {
+    await expect
+      .soft(this.errorFor(name), `${name}: error message should be shown`)
+      .toHaveText(message);
+    await expect
+      .soft(this.field(name), `${name}: input should be marked invalid`)
+      .toHaveAttribute('aria-invalid', 'true');
+  }
+
   async expectNoFieldError(name: BookFormField): Promise<void> {
     await expect(this.errorFor(name)).toBeHidden();
   }

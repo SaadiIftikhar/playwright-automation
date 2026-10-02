@@ -6,23 +6,25 @@ test.describe('Catalog browsing', () => {
     await catalogPage.goto();
   });
 
-  test('CAT-001 lists the full catalog with title, author and price @core', async ({
-    catalogPage,
-  }) => {
-    await catalogPage.expectResultCount(SEED.totalBooks);
+  test(
+    'CAT-001 lists the full catalog with title, author and price',
+    { tag: '@core' },
+    async ({ catalogPage }) => {
+      await catalogPage.expectResultCount(SEED.totalBooks);
 
-    const card = catalogPage.card(SEED.sample.title);
-    await expect(card).toContainText(`by ${SEED.sample.author}`);
-    await expect(card).toContainText(SEED.sample.genre);
-    await expect(card).toContainText(SEED.sample.price);
-    await expect(card).toContainText(`${SEED.sample.stock} in stock`);
-  });
+      const card = catalogPage.card(SEED.sample.title);
+      await expect(card).toContainText(`by ${SEED.sample.author}`);
+      await expect(card).toContainText(SEED.sample.genre);
+      await expect(card).toContainText(SEED.sample.price);
+      await expect(card).toContainText(`${SEED.sample.stock} in stock`);
+    },
+  );
 
   test('CAT-002 marks out-of-stock books', async ({ catalogPage }) => {
     await expect(catalogPage.card(SEED.outOfStock.title)).toContainText('Out of stock');
   });
 
-  test('CAT-003 searches by title @core', async ({ catalogPage }) => {
+  test('CAT-003 searches by title', { tag: '@core' }, async ({ catalogPage }) => {
     await catalogPage.search(SEED.sample.title);
 
     await catalogPage.expectResultCount(1);
@@ -46,7 +48,7 @@ test.describe('Catalog browsing', () => {
     await catalogPage.expectResultCount(SEED.authorWithTwoBooks.count);
   });
 
-  test('CAT-006 filters by genre @core', async ({ catalogPage }) => {
+  test('CAT-006 filters by genre', { tag: '@core' }, async ({ catalogPage }) => {
     await catalogPage.filterByGenre('poetry');
 
     await catalogPage.expectResultCount(SEED.genreCounts.poetry);
@@ -88,35 +90,39 @@ test.describe('Catalog browsing', () => {
     await expect(catalogPage.bookCards.first()).toContainText(SEED.firstByTitleDesc);
   });
 
-  test('CAT-010 composes search, genre and stock filters @core', async ({
-    catalogPage,
-  }) => {
-    await catalogPage.search(SEED.narrowing.author);
-    await catalogPage.expectResultCount(SEED.narrowing.authorCount);
+  test(
+    'CAT-010 composes search, genre and stock filters',
+    { tag: '@core' },
+    async ({ catalogPage }) => {
+      await catalogPage.search(SEED.narrowing.author);
+      await catalogPage.expectResultCount(SEED.narrowing.authorCount);
 
-    await catalogPage.filterByGenre(SEED.narrowing.genre);
-    await catalogPage.expectResultCount(SEED.narrowing.genreCount);
+      await catalogPage.filterByGenre(SEED.narrowing.genre);
+      await catalogPage.expectResultCount(SEED.narrowing.genreCount);
 
-    await catalogPage.onlyInStock();
-    await catalogPage.expectResultCount(SEED.narrowing.inStockCount);
-    await expect(catalogPage.bookLink(SEED.narrowing.inStockTitle)).toBeVisible();
-  });
+      await catalogPage.onlyInStock();
+      await catalogPage.expectResultCount(SEED.narrowing.inStockCount);
+      await expect(catalogPage.bookLink(SEED.narrowing.inStockTitle)).toBeVisible();
+    },
+  );
 
-  test('CAT-011 clear filters restores the full catalog @core', async ({
-    catalogPage,
-  }) => {
-    await catalogPage.search(SEED.narrowing.author);
-    await catalogPage.filterByGenre(SEED.narrowing.genre);
-    await catalogPage.onlyInStock();
-    await catalogPage.expectResultCount(SEED.narrowing.inStockCount);
+  test(
+    'CAT-011 clear filters restores the full catalog',
+    { tag: '@core' },
+    async ({ catalogPage }) => {
+      await catalogPage.search(SEED.narrowing.author);
+      await catalogPage.filterByGenre(SEED.narrowing.genre);
+      await catalogPage.onlyInStock();
+      await catalogPage.expectResultCount(SEED.narrowing.inStockCount);
 
-    await catalogPage.clearFilters();
+      await catalogPage.clearFilters();
 
-    await catalogPage.expectResultCount(SEED.totalBooks);
-    await expect(catalogPage.searchBox).toHaveValue('');
-    await expect(catalogPage.genreFilter).toHaveValue('');
-    await expect(catalogPage.inStockCheckbox).not.toBeChecked();
-  });
+      await catalogPage.expectResultCount(SEED.totalBooks);
+      await expect(catalogPage.searchBox).toHaveValue('');
+      await expect(catalogPage.genreFilter).toHaveValue('');
+      await expect(catalogPage.inStockCheckbox).not.toBeChecked();
+    },
+  );
 
   test('CAT-012 the result count agrees with the rendered cards', async ({
     catalogPage,
@@ -135,14 +141,15 @@ test.describe('Catalog browsing', () => {
     await expect(catalogPage.resultCount).toHaveText('1 book');
   });
 
-  test('CAT-014 opens the detail page for a book @core', async ({
-    catalogPage,
-    bookDetailPage,
-  }) => {
-    await catalogPage.openBook(SEED.sample.title);
+  test(
+    'CAT-014 opens the detail page for a book',
+    { tag: '@core' },
+    async ({ catalogPage, bookDetailPage }) => {
+      await catalogPage.openBook(SEED.sample.title);
 
-    await bookDetailPage.expectLoaded(SEED.sample.title);
-    await expect(bookDetailPage.price).toHaveText(SEED.sample.price);
-    await expect(catalogPage.page).toHaveURL(/\/book\.html\?id=bk_\d+/);
-  });
+      await bookDetailPage.expectLoaded(SEED.sample.title);
+      await expect(bookDetailPage.price).toHaveText(SEED.sample.price);
+      await expect(catalogPage.page).toHaveURL(/\/book\.html\?id=bk_\d+/);
+    },
+  );
 });

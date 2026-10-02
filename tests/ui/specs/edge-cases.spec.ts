@@ -78,27 +78,27 @@ test.describe('Edge cases', () => {
     await form.expectFieldError('stock', /at most 10000/);
   });
 
-  test('EDG-004 round-trips emoji in the title @core', async ({
-    inventoryPage,
-    catalogPage,
-    api,
-  }) => {
-    const title = 'Rocket 🚀 Science 🔬 Vol. 1';
-    const book = bookInput({ title });
+  test(
+    'EDG-004 round-trips emoji in the title',
+    { tag: '@core' },
+    async ({ inventoryPage, catalogPage, api }) => {
+      const title = 'Rocket 🚀 Science 🔬 Vol. 1';
+      const book = bookInput({ title });
 
-    await inventoryPage.goto();
-    await inventoryPage.createBook(book);
-    await inventoryPage.expectToast('Book created');
-    await inventoryPage.expectRowVisible(title);
+      await inventoryPage.goto();
+      await inventoryPage.createBook(book);
+      await inventoryPage.expectToast('Book created');
+      await inventoryPage.expectRowVisible(title);
 
-    const saved = await api.findByTitle(title);
-    expect(saved?.title).toBe(title);
+      const saved = await api.findByTitle(title);
+      expect(saved?.title).toBe(title);
 
-    await catalogPage.goto();
-    await catalogPage.search('Rocket 🚀');
-    await catalogPage.expectResultCount(1);
-    await expect(catalogPage.bookLink(title)).toBeVisible();
-  });
+      await catalogPage.goto();
+      await catalogPage.search('Rocket 🚀');
+      await catalogPage.expectResultCount(1);
+      await expect(catalogPage.bookLink(title)).toBeVisible();
+    },
+  );
 
   test('EDG-005 round-trips non-Latin and accented characters', async ({
     inventoryPage,
@@ -116,27 +116,28 @@ test.describe('Edge cases', () => {
     expect(saved).toMatchObject({ title, author });
   });
 
-  test('EDG-006 renders markup in a field as literal text @core', async ({
-    inventoryPage,
-    catalogPage,
-  }) => {
-    const title = '<script>alert("xss")</script> & <b>bold</b>';
+  test(
+    'EDG-006 renders markup in a field as literal text',
+    { tag: '@core' },
+    async ({ inventoryPage, catalogPage }) => {
+      const title = '<script>alert("xss")</script> & <b>bold</b>';
 
-    await inventoryPage.goto();
-    await inventoryPage.createBook(bookInput({ title }));
-    await inventoryPage.expectToast('Book created');
+      await inventoryPage.goto();
+      await inventoryPage.createBook(bookInput({ title }));
+      await inventoryPage.expectToast('Book created');
 
-    await expect(
-      inventoryPage.page.getByRole('cell', { name: title, exact: true }),
-    ).toBeVisible();
-    await expect(inventoryPage.page.locator('script#injected')).toHaveCount(0);
-    await expect(inventoryPage.page.locator('table b')).toHaveCount(0);
+      await expect(
+        inventoryPage.page.getByRole('cell', { name: title, exact: true }),
+      ).toBeVisible();
+      await expect(inventoryPage.page.locator('script#injected')).toHaveCount(0);
+      await expect(inventoryPage.page.locator('table b')).toHaveCount(0);
 
-    await catalogPage.goto();
-    await catalogPage.search('<script>');
-    await catalogPage.expectResultCount(1);
-    await expect(catalogPage.bookLink(title)).toBeVisible();
-  });
+      await catalogPage.goto();
+      await catalogPage.search('<script>');
+      await catalogPage.expectResultCount(1);
+      await expect(catalogPage.bookLink(title)).toBeVisible();
+    },
+  );
 
   test('EDG-007 trims surrounding whitespace before saving', async ({
     inventoryPage,
@@ -166,15 +167,17 @@ test.describe('Edge cases', () => {
     expect(saved?.isbn).toBe('9780596520687');
   });
 
-  test('EDG-009 shows the empty state when nothing matches @core', async ({
-    catalogPage,
-  }) => {
-    await catalogPage.goto();
-    await catalogPage.search('nothing-here-matches-this-query');
+  test(
+    'EDG-009 shows the empty state when nothing matches',
+    { tag: '@core' },
+    async ({ catalogPage }) => {
+      await catalogPage.goto();
+      await catalogPage.search('nothing-here-matches-this-query');
 
-    await catalogPage.expectEmptyState();
-    await expect(catalogPage.errorMessage).toBeHidden();
-  });
+      await catalogPage.expectEmptyState();
+      await expect(catalogPage.errorMessage).toBeHidden();
+    },
+  );
 
   test('EDG-010 treats regex metacharacters in search as literal text', async ({
     catalogPage,
@@ -277,14 +280,16 @@ test.describe('Edge cases', () => {
     await expect(bookDetailPage.description).toHaveText('No description provided.');
   });
 
-  test('EDG-017 an unknown book id shows the not-found view @core', async ({
-    bookDetailPage,
-  }) => {
-    await bookDetailPage.goto('bk_does_not_exist');
+  test(
+    'EDG-017 an unknown book id shows the not-found view',
+    { tag: '@core' },
+    async ({ bookDetailPage }) => {
+      await bookDetailPage.goto('bk_does_not_exist');
 
-    await bookDetailPage.expectNotFound();
-    await expect(bookDetailPage.backLink).toBeVisible();
-  });
+      await bookDetailPage.expectNotFound();
+      await expect(bookDetailPage.backLink).toBeVisible();
+    },
+  );
 
   test('EDG-018 a missing id parameter shows the not-found view', async ({
     bookDetailPage,

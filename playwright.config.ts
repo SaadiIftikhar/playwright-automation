@@ -9,7 +9,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  // Percentage scales with whatever runner size CI gives us, rather than
+  // pinning a number that is wrong on half of them.
+  workers: process.env.CI ? '50%' : undefined,
   timeout: 30_000,
   expect: { timeout: 7_000 },
 
@@ -21,7 +23,17 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // Traces already carry a DOM snapshot per step, so video would duplicate
+    // that at a cost on every test.
     video: 'off',
+    // Bounded so a hung action fails fast with a useful message instead of
+    // consuming the whole test timeout.
+    actionTimeout: 10_000,
+    navigationTimeout: 15_000,
+    // The app formats money and sorts titles with Intl. Pinning locale and
+    // timezone keeps those assertions independent of the machine running them.
+    locale: 'en-US',
+    timezoneId: 'UTC',
   },
 
   // chromium runs the whole suite; firefox and webkit run the @core subset so
@@ -37,5 +49,8 @@ export default defineConfig({
     url: `${BASE_URL}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
+    // Surfaced in CI logs, so a server that fails to boot says why.
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
 });

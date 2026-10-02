@@ -2,39 +2,39 @@ import { SEED } from '../../shared/seed-facts';
 import { expect, test } from '../fixtures/test';
 
 test.describe('Cart', () => {
-  test('CRT-001 adds a book to the cart from the detail page @core', async ({
-    api,
-    bookDetailPage,
-    cartPage,
-  }) => {
-    const book = await api.findByTitle(SEED.sample.title);
+  test(
+    'CRT-001 adds a book to the cart from the detail page',
+    { tag: '@core' },
+    async ({ api, bookDetailPage, cartPage }) => {
+      const book = await api.findByTitle(SEED.sample.title);
 
-    await bookDetailPage.goto(book!.id);
-    await bookDetailPage.addToCartAndWait();
-    await bookDetailPage.nav.expectCartCount(1);
+      await bookDetailPage.goto(book!.id);
+      await bookDetailPage.addToCartAndWait();
+      await bookDetailPage.nav.expectCartCount(1);
 
-    await cartPage.goto();
-    await cartPage.expectItem(SEED.sample.title, 1, SEED.sample.price);
-    await cartPage.expectSubtotal(SEED.sample.price);
-  });
+      await cartPage.goto();
+      await cartPage.expectItem(SEED.sample.title, 1, SEED.sample.price);
+      await cartPage.expectSubtotal(SEED.sample.price);
+    },
+  );
 
-  test('CRT-002 adding the same book twice increments the quantity @core', async ({
-    api,
-    bookDetailPage,
-    cartPage,
-  }) => {
-    const book = await api.findByTitle(SEED.sample.title);
+  test(
+    'CRT-002 adding the same book twice increments the quantity',
+    { tag: '@core' },
+    async ({ api, bookDetailPage, cartPage }) => {
+      const book = await api.findByTitle(SEED.sample.title);
 
-    await bookDetailPage.goto(book!.id);
-    await bookDetailPage.addToCartAndWait();
-    await bookDetailPage.addToCartAndWait();
-    await bookDetailPage.nav.expectCartCount(2);
+      await bookDetailPage.goto(book!.id);
+      await bookDetailPage.addToCartAndWait();
+      await bookDetailPage.addToCartAndWait();
+      await bookDetailPage.nav.expectCartCount(2);
 
-    await cartPage.goto();
-    await expect(cartPage.rows).toHaveCount(1);
-    await cartPage.expectItem(SEED.sample.title, 2, '$45.00');
-    await cartPage.expectSubtotal('$45.00');
-  });
+      await cartPage.goto();
+      await expect(cartPage.rows).toHaveCount(1);
+      await cartPage.expectItem(SEED.sample.title, 2, '$45.00');
+      await cartPage.expectSubtotal('$45.00');
+    },
+  );
 
   test('CRT-003 adds several copies in one go', async ({
     api,
@@ -96,21 +96,22 @@ test.describe('Cart', () => {
     await cartPage.nav.expectCartCount(1);
   });
 
-  test('CRT-007 clearing the cart shows the empty state @core', async ({
-    api,
-    cartPage,
-  }) => {
-    const book = await api.findByTitle(SEED.sample.title);
-    await api.addToCart(book!.id, 2);
+  test(
+    'CRT-007 clearing the cart shows the empty state',
+    { tag: '@core' },
+    async ({ api, cartPage }) => {
+      const book = await api.findByTitle(SEED.sample.title);
+      await api.addToCart(book!.id, 2);
 
-    await cartPage.goto();
-    await expect(cartPage.rows).toHaveCount(1);
+      await cartPage.goto();
+      await expect(cartPage.rows).toHaveCount(1);
 
-    await cartPage.clearCart();
+      await cartPage.clearCart();
 
-    await cartPage.expectEmpty();
-    await cartPage.nav.expectCartCount(0);
-  });
+      await cartPage.expectEmpty();
+      await cartPage.nav.expectCartCount(0);
+    },
+  );
 
   test('CRT-008 an untouched cart starts empty', async ({ cartPage }) => {
     await cartPage.goto();

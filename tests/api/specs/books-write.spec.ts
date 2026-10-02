@@ -1,7 +1,11 @@
 import { bookInput } from '../../shared/factories';
 import { SEED } from '../../shared/seed-facts';
 import { expect, test } from '../fixtures/test';
-import { bookEnvelopeSchema, bookListEnvelopeSchema, expectSchema } from '../schemas';
+import {
+  bookEnvelopeSchema,
+  bookListEnvelopeSchema,
+  expectSchema,
+} from '../../shared/schemas';
 
 test.describe('POST /api/books', () => {
   test('API-020 creates a book and returns 201 with a Location header', async ({

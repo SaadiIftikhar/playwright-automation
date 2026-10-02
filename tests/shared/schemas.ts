@@ -1,7 +1,7 @@
 import type { APIResponse } from '@playwright/test';
 import { expect } from '@playwright/test';
 import { z } from 'zod';
-import { GENRES } from '../../shared/types';
+import { GENRES } from './types';
 
 export const genreSchema = z.enum(GENRES);
 
@@ -98,16 +98,31 @@ export type CartPayload = z.infer<typeof cartSchema>;
 export type ErrorPayload = z.infer<typeof errorEnvelopeSchema>;
 
 /**
- * Parses a response body against a schema and fails with the actual issues
- * rather than a bare "expected true, got false". Every contract assertion in
- * the API suite goes through here instead of spot-checking individual fields.
+ * Parses an already-read body against a schema and throws with the actual
+ * issues if it does not match. This is what turns an `any` coming out of
+ * `response.json()` into a value whose type is proven rather than asserted.
+ */
+export function parseBody<T>(schema: z.ZodType<T>, body: unknown, context: string): T {
+  const result = schema.safeParse(body);
+  if (!result.success) {
+    throw new Error(
+      `${context}: response did not match schema\n${z.prettifyError(result.error)}\n\nbody: ${JSON.stringify(body, null, 2)}`,
+    );
+  }
+  return result.data;
+}
+
+/**
+ * Asserts status, content type and schema in one step, and fails with the real
+ * issues rather than a bare "expected true, got false". Every contract
+ * assertion in the API suite goes through here instead of spot-checking fields.
  */
 export async function expectSchema<T>(
   response: APIResponse,
   schema: z.ZodType<T>,
   expectedStatus: number,
 ): Promise<T> {
-  const body = await response.json().catch(() => undefined);
+  const body: unknown = await response.json().catch(() => undefined);
 
   expect(
     response.status(),
@@ -124,7 +139,7 @@ export async function expectSchema<T>(
       : `response did not match schema:\n${z.prettifyError(result.error)}\n\nbody: ${JSON.stringify(body, null, 2)}`,
   ).toBe(true);
 
-  return (result as { success: true; data: T }).data;
+  return parseBody(schema, body, 'response');
 }
 
 /** Asserts an error response: status, schema, code, and optionally the fields named in details. */

@@ -1,6 +1,6 @@
 import { bookInput } from '../../shared/factories';
 import { expect, test } from '../fixtures/test';
-import { cartEnvelopeSchema, expectError, expectSchema } from '../schemas';
+import { cartEnvelopeSchema, expectError, expectSchema } from '../../shared/schemas';
 
 test.describe('Cart API', () => {
   test('API-100 a new tenant starts with an empty cart', async ({ request }) => {

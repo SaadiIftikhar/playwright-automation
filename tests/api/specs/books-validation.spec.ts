@@ -1,6 +1,6 @@
 import { bookInput } from '../../shared/factories';
 import { expect, test } from '../fixtures/test';
-import { expectError } from '../schemas';
+import { expectError } from '../../shared/schemas';
 
 const REQUIRED_FIELDS = ['title', 'author', 'isbn', 'price', 'stock', 'genre'] as const;
 

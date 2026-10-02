@@ -10,17 +10,18 @@ const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 const scan = (page: Page) => new AxeBuilder({ page }).withTags(WCAG_TAGS);
 
 test.describe('Accessibility', () => {
-  test('A11Y-001 the catalog has no WCAG A or AA violations @core', async ({
-    page,
-    catalogPage,
-  }) => {
-    await catalogPage.goto();
-    await catalogPage.expectResultCount(SEED.totalBooks);
+  test(
+    'A11Y-001 the catalog has no WCAG A or AA violations',
+    { tag: '@core' },
+    async ({ page, catalogPage }) => {
+      await catalogPage.goto();
+      await catalogPage.expectResultCount(SEED.totalBooks);
 
-    const { violations } = await scan(page).analyze();
+      const { violations } = await scan(page).analyze();
 
-    expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
-  });
+      expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
+    },
+  );
 
   test('A11Y-002 the book detail page has no WCAG A or AA violations', async ({
     page,
@@ -85,67 +86,68 @@ test.describe('Accessibility', () => {
     await expect(catalogPage.clearFiltersButton).toBeVisible();
   });
 
-  test('A11Y-007 the page exposes the expected landmarks and heading level @core', async ({
-    page,
-    catalogPage,
-  }) => {
-    await catalogPage.goto();
+  test(
+    'A11Y-007 the page exposes the expected landmarks and heading level',
+    { tag: '@core' },
+    async ({ page, catalogPage }) => {
+      await catalogPage.goto();
 
-    await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
-    await expect(page.getByRole('main')).toBeVisible();
-    await expect(page.getByRole('search', { name: 'Book filters' })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
-    await expect(catalogPage.results).toHaveAccessibleName('Book results');
-  });
+      await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+      await expect(page.getByRole('main')).toBeVisible();
+      await expect(page.getByRole('search', { name: 'Book filters' })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+      await expect(catalogPage.results).toHaveAccessibleName('Book results');
+    },
+  );
 
-  test('A11Y-008 a book can be created using only the keyboard @core', async ({
-    page,
-    inventoryPage,
-    api,
-  }) => {
-    const title = 'Keyboard Only Book';
-    await inventoryPage.goto();
+  test(
+    'A11Y-008 a book can be created using only the keyboard',
+    { tag: '@core' },
+    async ({ page, inventoryPage, api }) => {
+      const title = 'Keyboard Only Book';
+      await inventoryPage.goto();
 
-    await inventoryPage.addBookButton.focus();
-    await page.keyboard.press('Enter');
-    await inventoryPage.form.expectOpen('Add book');
+      await inventoryPage.addBookButton.focus();
+      await page.keyboard.press('Enter');
+      await inventoryPage.form.expectOpen('Add book');
 
-    // Focus lands on the first field when the dialog opens, so the rest of the
-    // form is reachable by tabbing alone.
-    await expect(inventoryPage.form.field('title')).toBeFocused();
-    await page.keyboard.type(title);
+      // Focus lands on the first field when the dialog opens, so the rest of the
+      // form is reachable by tabbing alone.
+      await expect(inventoryPage.form.field('title')).toBeFocused();
+      await page.keyboard.type(title);
 
-    await page.keyboard.press('Tab');
-    await expect(inventoryPage.form.field('author')).toBeFocused();
-    await page.keyboard.type('Keyboard Author');
+      await page.keyboard.press('Tab');
+      await expect(inventoryPage.form.field('author')).toBeFocused();
+      await page.keyboard.type('Keyboard Author');
 
-    await page.keyboard.press('Tab');
-    await expect(inventoryPage.form.field('isbn')).toBeFocused();
-    await page.keyboard.type(uniqueIsbn());
+      await page.keyboard.press('Tab');
+      await expect(inventoryPage.form.field('isbn')).toBeFocused();
+      await page.keyboard.type(uniqueIsbn());
 
-    await page.keyboard.press('Tab');
-    await expect(inventoryPage.form.field('price')).toBeFocused();
-    await page.keyboard.type('15.00');
+      await page.keyboard.press('Tab');
+      await expect(inventoryPage.form.field('price')).toBeFocused();
+      await page.keyboard.type('15.00');
 
-    await page.keyboard.press('Tab');
-    await expect(inventoryPage.form.field('stock')).toBeFocused();
-    await page.keyboard.type('4');
+      await page.keyboard.press('Tab');
+      await expect(inventoryPage.form.field('stock')).toBeFocused();
+      await page.keyboard.type('4');
 
-    await page.keyboard.press('Tab');
-    await expect(inventoryPage.form.field('genre')).toBeFocused();
-    await inventoryPage.form.field('genre').selectOption('mystery');
+      await page.keyboard.press('Tab');
+      await expect(inventoryPage.form.field('genre')).toBeFocused();
+      await inventoryPage.form.field('genre').selectOption('mystery');
 
-    await inventoryPage.form.submitButton.focus();
-    await page.keyboard.press('Enter');
+      await inventoryPage.form.submitButton.focus();
+      await page.keyboard.press('Enter');
 
-    await inventoryPage.expectToast('Book created');
-    await inventoryPage.expectRowVisible(title);
-    expect(await api.findByTitle(title)).toMatchObject({
-      title,
-      author: 'Keyboard Author',
-      genre: 'mystery',
-    });
-  });
+      await inventoryPage.expectToast('Book created');
+      await inventoryPage.expectRowVisible(title);
+      expect(await api.findByTitle(title)).toMatchObject({
+        title,
+        author: 'Keyboard Author',
+        genre: 'mystery',
+      });
+    },
+  );
 
   test('A11Y-009 the catalog can be searched and opened by keyboard alone', async ({
     page,
@@ -164,18 +166,19 @@ test.describe('Accessibility', () => {
     await bookDetailPage.expectLoaded(SEED.sample.title);
   });
 
-  test('A11Y-010 the dialog closes on Escape and returns focus to its trigger @core', async ({
-    page,
-    inventoryPage,
-  }) => {
-    await inventoryPage.goto();
-    await inventoryPage.openAddForm();
+  test(
+    'A11Y-010 the dialog closes on Escape and returns focus to its trigger',
+    { tag: '@core' },
+    async ({ page, inventoryPage }) => {
+      await inventoryPage.goto();
+      await inventoryPage.openAddForm();
 
-    await page.keyboard.press('Escape');
+      await page.keyboard.press('Escape');
 
-    await inventoryPage.form.expectClosed();
-    await expect(inventoryPage.addBookButton).toBeFocused();
-  });
+      await inventoryPage.form.expectClosed();
+      await expect(inventoryPage.addBookButton).toBeFocused();
+    },
+  );
 
   test('A11Y-011 the delete confirmation returns focus to the row button', async ({
     page,

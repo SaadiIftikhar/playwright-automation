@@ -1,9 +1,20 @@
 import { expect, type APIRequestContext } from '@playwright/test';
+import {
+  bookEnvelopeSchema,
+  bookListEnvelopeSchema,
+  cartEnvelopeSchema,
+  parseBody,
+} from './schemas';
 import type { Book, BookInput, Cart, ListMeta, ListQuery } from './types';
 
 /**
  * Thin typed wrapper used to seed and inspect data over HTTP. UI tests use it
  * for setup so they never have to click their way into a starting state.
+ *
+ * Every response is parsed through the same zod schemas the API suite asserts
+ * against, so the declared return types are proven rather than asserted. If the
+ * API shape ever drifts, setup fails loudly here instead of surfacing as a
+ * confusing assertion failure further down the test.
  */
 export class BookstoreApi {
   constructor(private readonly request: APIRequestContext) {}
@@ -17,19 +28,19 @@ export class BookstoreApi {
     }
     const response = await this.request.get('/api/books', { params });
     expect(response.ok(), `listBooks failed: ${response.status()}`).toBeTruthy();
-    return response.json();
+    return parseBody(bookListEnvelopeSchema, await response.json(), 'listBooks');
   }
 
   async getBook(id: string): Promise<Book> {
     const response = await this.request.get(`/api/books/${id}`);
     expect(response.ok(), `getBook failed: ${response.status()}`).toBeTruthy();
-    return (await response.json()).data;
+    return parseBody(bookEnvelopeSchema, await response.json(), 'getBook').data;
   }
 
   async createBook(input: BookInput): Promise<Book> {
     const response = await this.request.post('/api/books', { data: input });
     expect(response.status(), `createBook failed: ${await response.text()}`).toBe(201);
-    return (await response.json()).data;
+    return parseBody(bookEnvelopeSchema, await response.json(), 'createBook').data;
   }
 
   async createBooks(inputs: BookInput[]): Promise<Book[]> {
@@ -55,16 +66,16 @@ export class BookstoreApi {
 
   async getCart(): Promise<Cart> {
     const response = await this.request.get('/api/cart');
-    expect(response.ok()).toBeTruthy();
-    return (await response.json()).data;
+    expect(response.ok(), `getCart failed: ${response.status()}`).toBeTruthy();
+    return parseBody(cartEnvelopeSchema, await response.json(), 'getCart').data;
   }
 
   async addToCart(bookId: string, quantity = 1): Promise<Cart> {
     const response = await this.request.post('/api/cart/items', {
       data: { bookId, quantity },
     });
-    expect(response.status()).toBe(201);
-    return (await response.json()).data;
+    expect(response.status(), `addToCart failed: ${await response.text()}`).toBe(201);
+    return parseBody(cartEnvelopeSchema, await response.json(), 'addToCart').data;
   }
 
   /** Resets this tenant only. `seed: false` gives an empty catalog. */

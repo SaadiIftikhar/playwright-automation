@@ -10,25 +10,26 @@ import { SEED } from '../../shared/seed-facts';
 import { expect, test } from '../fixtures/test';
 
 test.describe('Dynamic UI states', () => {
-  test('DYN-001 shows the loading indicator while the catalog is in flight @core', async ({
-    page,
-    catalogPage,
-  }) => {
-    const gate = await holdRequests(page, isBookList);
+  test(
+    'DYN-001 shows the loading indicator while the catalog is in flight',
+    { tag: '@core' },
+    async ({ page, catalogPage }) => {
+      const gate = await holdRequests(page, isBookList);
 
-    await page.goto('/index.html');
-    await gate.waitUntilHeld();
+      await page.goto('/index.html');
+      await gate.waitUntilHeld();
 
-    await expect(catalogPage.loadingIndicator).toBeVisible();
-    await expect(catalogPage.loadingIndicator).toHaveText(/Loading books/);
-    await expect(catalogPage.bookCards).toHaveCount(0);
+      await expect(catalogPage.loadingIndicator).toBeVisible();
+      await expect(catalogPage.loadingIndicator).toHaveText(/Loading books/);
+      await expect(catalogPage.bookCards).toHaveCount(0);
 
-    gate.release();
+      gate.release();
 
-    await expect(catalogPage.loadingIndicator).toBeHidden();
-    await catalogPage.expectResultCount(SEED.totalBooks);
-    await gate.dispose();
-  });
+      await expect(catalogPage.loadingIndicator).toBeHidden();
+      await catalogPage.expectResultCount(SEED.totalBooks);
+      await gate.dispose();
+    },
+  );
 
   test('DYN-002 debounces typing into one request', async ({ page, catalogPage }) => {
     await catalogPage.goto();
@@ -80,51 +81,50 @@ test.describe('Dynamic UI states', () => {
     await gate.dispose();
   });
 
-  test('DYN-004 the add-to-cart button reports progress and locks while in flight @core', async ({
-    page,
-    api,
-    bookDetailPage,
-  }) => {
-    const book = await api.findByTitle(SEED.sample.title);
-    await bookDetailPage.goto(book!.id);
-    await bookDetailPage.expectLoaded(SEED.sample.title);
+  test(
+    'DYN-004 the add-to-cart button reports progress and locks while in flight',
+    { tag: '@core' },
+    async ({ page, api, bookDetailPage }) => {
+      const book = await api.findByTitle(SEED.sample.title);
+      await bookDetailPage.goto(book!.id);
+      await bookDetailPage.expectLoaded(SEED.sample.title);
 
-    const gate = await holdRequests(page, isCartAdd);
-    await bookDetailPage.addToCart();
-    await gate.waitUntilHeld();
+      const gate = await holdRequests(page, isCartAdd);
+      await bookDetailPage.addToCart();
+      await gate.waitUntilHeld();
 
-    await expect(bookDetailPage.busyButton).toBeVisible();
-    await expect(bookDetailPage.busyButton).toBeDisabled();
-    await expect(bookDetailPage.successMessage).toBeHidden();
+      await expect(bookDetailPage.busyButton).toBeVisible();
+      await expect(bookDetailPage.busyButton).toBeDisabled();
+      await expect(bookDetailPage.successMessage).toBeHidden();
 
-    gate.release();
+      gate.release();
 
-    await expect(bookDetailPage.successMessage).toBeVisible();
-    await expect(bookDetailPage.addToCartButton).toBeEnabled();
-    await bookDetailPage.nav.expectCartCount(1);
-    await gate.dispose();
-  });
+      await expect(bookDetailPage.successMessage).toBeVisible();
+      await expect(bookDetailPage.addToCartButton).toBeEnabled();
+      await bookDetailPage.nav.expectCartCount(1);
+      await gate.dispose();
+    },
+  );
 
-  test('DYN-005 double-clicking add to cart sends a single request @core', async ({
-    page,
-    api,
-    bookDetailPage,
-    cartPage,
-  }) => {
-    const book = await api.findByTitle(SEED.sample.title);
-    await bookDetailPage.goto(book!.id);
-    await bookDetailPage.expectLoaded(SEED.sample.title);
+  test(
+    'DYN-005 double-clicking add to cart sends a single request',
+    { tag: '@core' },
+    async ({ page, api, bookDetailPage, cartPage }) => {
+      const book = await api.findByTitle(SEED.sample.title);
+      await bookDetailPage.goto(book!.id);
+      await bookDetailPage.expectLoaded(SEED.sample.title);
 
-    const countAdds = countRequests(page, '/api/cart/items', 'POST');
-    await bookDetailPage.addToCartButton.dblclick();
+      const countAdds = countRequests(page, '/api/cart/items', 'POST');
+      await bookDetailPage.addToCartButton.dblclick();
 
-    await expect(bookDetailPage.successMessage).toBeVisible();
-    await bookDetailPage.nav.expectCartCount(1);
-    expect(countAdds()).toBe(1);
+      await expect(bookDetailPage.successMessage).toBeVisible();
+      await bookDetailPage.nav.expectCartCount(1);
+      expect(countAdds()).toBe(1);
 
-    await cartPage.goto();
-    await cartPage.expectItem(SEED.sample.title, 1, SEED.sample.price);
-  });
+      await cartPage.goto();
+      await cartPage.expectItem(SEED.sample.title, 1, SEED.sample.price);
+    },
+  );
 
   test('DYN-006 the save button reports progress and locks while saving', async ({
     page,
@@ -176,46 +176,47 @@ test.describe('Dynamic UI states', () => {
     await gate.dispose();
   });
 
-  test('DYN-008 a failing catalog request shows an error with a working retry @core', async ({
-    page,
-    catalogPage,
-  }) => {
-    let failNext = true;
-    await page.route(
-      (url) => url.pathname === '/api/books',
-      async (route) => {
-        if (failNext) {
-          failNext = false;
-          await route.fulfill({
-            status: 500,
-            contentType: 'application/json',
-            body: JSON.stringify({
-              error: {
-                code: 'INTERNAL_ERROR',
-                message: 'Unexpected server error',
-                details: [],
-              },
-            }),
-          });
-          return;
-        }
-        await route.continue();
-      },
-    );
+  test(
+    'DYN-008 a failing catalog request shows an error with a working retry',
+    { tag: '@core' },
+    async ({ page, catalogPage }) => {
+      let failNext = true;
+      await page.route(
+        (url) => url.pathname === '/api/books',
+        async (route) => {
+          if (failNext) {
+            failNext = false;
+            await route.fulfill({
+              status: 500,
+              contentType: 'application/json',
+              body: JSON.stringify({
+                error: {
+                  code: 'INTERNAL_ERROR',
+                  message: 'Unexpected server error',
+                  details: [],
+                },
+              }),
+            });
+            return;
+          }
+          await route.continue();
+        },
+      );
 
-    await catalogPage.goto();
+      await catalogPage.goto();
 
-    await expect(catalogPage.errorMessage).toBeVisible();
-    await expect(catalogPage.errorMessage).toContainText('Could not load books');
-    await expect(catalogPage.bookCards).toHaveCount(0);
+      await expect(catalogPage.errorMessage).toBeVisible();
+      await expect(catalogPage.errorMessage).toContainText('Could not load books');
+      await expect(catalogPage.bookCards).toHaveCount(0);
 
-    const retry = page.getByRole('button', { name: 'Try again' });
-    await expect(retry).toBeVisible();
-    await retry.click();
+      const retry = page.getByRole('button', { name: 'Try again' });
+      await expect(retry).toBeVisible();
+      await retry.click();
 
-    await expect(catalogPage.errorMessage).toBeHidden();
-    await catalogPage.expectResultCount(SEED.totalBooks);
-  });
+      await expect(catalogPage.errorMessage).toBeHidden();
+      await catalogPage.expectResultCount(SEED.totalBooks);
+    },
+  );
 
   test('DYN-009 the inventory table shows a loading state before it renders', async ({
     page,

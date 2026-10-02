@@ -26,9 +26,12 @@ export default tseslint.config(
   },
 
   // Test suites: TypeScript, with the Playwright rules that catch real problems.
+  // Type-checked rules are on because the single most damaging mistake in a
+  // Playwright suite is a forgotten await: the assertion never runs and the
+  // test passes. no-floating-promises catches exactly that.
   {
     files: ['tests/**/*.ts', '*.config.ts'],
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
       globals: globals.node,
@@ -38,6 +41,9 @@ export default tseslint.config(
       ...playwright.configs['flat/recommended'].rules,
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/require-await': 'off',
       'playwright/no-skipped-test': 'error',
       'playwright/no-focused-test': 'error',
       'playwright/no-wait-for-timeout': 'error',

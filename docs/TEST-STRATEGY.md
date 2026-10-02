@@ -94,9 +94,20 @@ destructive reset in one tenant leaves another untouched.
   client and exercise only the behaviour they are about.
 - **Assert on the contract, not on samples.** API responses are parsed against
   strict zod schemas, so an added, missing or retyped field fails the test
-  rather than slipping past a spot-check.
+  rather than slipping past a spot-check. The seeding client parses through the
+  same schemas, so its declared return types are proven rather than asserted.
+- **No forgotten awaits.** Enforced by lint
+  (`@typescript-eslint/no-floating-promises`, `await-thenable`). A missing
+  `await` on an assertion makes it never run, and the test passes anyway — the
+  most damaging mistake available in a Playwright suite, and invisible without
+  type-aware linting.
+- **Tags live in the tag option**, not in the test title, so titles stay clean
+  and reports are not cluttered with `@core` suffixes.
+- **Soft assertions where checks are independent.** A test that checks six form
+  fields reports all six failures in one run instead of stopping at the first.
 - **Name the case.** Every test carries an ID that matches
-  [TEST-CASES.md](TEST-CASES.md).
+  [TEST-CASES.md](TEST-CASES.md), which is generated from the suites by
+  `npm run docs:cases` rather than maintained by hand.
 
 ## Test levels
 
@@ -119,7 +130,7 @@ splits the difference:
 - **Firefox and WebKit** run the `@core` subset — the journeys and the features
   where the engines genuinely differ.
 
-27 of the 104 UI cases are tagged `@core`, giving 154 UI executions per run.
+25 of the 104 UI cases are tagged `@core`, giving 154 UI executions per run.
 
 ## Flakiness policy
 

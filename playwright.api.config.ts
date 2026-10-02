@@ -13,7 +13,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 4 : undefined,
+  workers: process.env.CI ? '50%' : undefined,
   timeout: 20_000,
   expect: { timeout: 5_000 },
 
@@ -34,5 +34,7 @@ export default defineConfig({
     url: `${BASE_URL}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
 });

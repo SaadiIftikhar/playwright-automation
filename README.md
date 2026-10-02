@@ -49,18 +49,19 @@ npm start         # http://127.0.0.1:3000
 
 ### Commands
 
-| Command                                       | What it does                                 |
-| --------------------------------------------- | -------------------------------------------- |
-| `npm test`                                    | Both suites, one after the other             |
-| `npm run test:ui`                             | UI suite on all three browsers               |
-| `npm run test:ui:chromium`                    | UI suite on Chromium only — fastest feedback |
-| `npm run test:ui:core`                        | Just the `@core` journeys                    |
-| `npm run test:ui:headed`                      | Watch the tests drive a real browser         |
-| `npm run test:ui:ui`                          | Playwright's interactive UI mode             |
-| `npm run test:api`                            | API suite — no browser needed                |
-| `npm run report:ui` / `report:api`            | Open the last HTML report                    |
-| `npm run lint` · `format:check` · `typecheck` | The checks CI runs                           |
-| `npm start` · `npm run dev`                   | Run the demo app by itself                   |
+| Command                                       | What it does                                       |
+| --------------------------------------------- | -------------------------------------------------- |
+| `npm test`                                    | Both suites, one after the other                   |
+| `npm run test:ui`                             | UI suite on all three browsers                     |
+| `npm run test:ui:chromium`                    | UI suite on Chromium only — fastest feedback       |
+| `npm run test:ui:core`                        | Just the `@core` journeys                          |
+| `npm run test:ui:headed`                      | Watch the tests drive a real browser               |
+| `npm run test:ui:ui`                          | Playwright's interactive UI mode                   |
+| `npm run test:api`                            | API suite — no browser needed                      |
+| `npm run report:ui` / `report:api`            | Open the last HTML report                          |
+| `npm run lint` · `format:check` · `typecheck` | The checks CI runs                                 |
+| `npm run docs:cases`                          | Regenerate the test case inventory from the suites |
+| `npm start` · `npm run dev`                   | Run the demo app by itself                         |
 
 Run a single documented case by its ID:
 
@@ -222,7 +223,7 @@ Full case-by-case inventory with IDs: **[docs/TEST-CASES.md](docs/TEST-CASES.md)
 | Accessibility   | 14    | axe-core WCAG 2.1 A/AA on five states, keyboard-only creation, landmarks, focus trap and restoration, live-region roles                                                                                        |
 | Regression      | 9     | Locked-down fixes for the four logged defects                                                                                                                                                                  |
 
-27 cases are tagged `@core` and also run on Firefox and WebKit — 154 executions per run.
+25 cases are tagged `@core` and also run on Firefox and WebKit — 154 executions per run.
 
 ### API — 117 cases
 

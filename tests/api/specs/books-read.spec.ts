@@ -1,6 +1,10 @@
 import { SEED } from '../../shared/seed-facts';
 import { expect, test } from '../fixtures/test';
-import { bookEnvelopeSchema, bookListEnvelopeSchema, expectSchema } from '../schemas';
+import {
+  bookEnvelopeSchema,
+  bookListEnvelopeSchema,
+  expectSchema,
+} from '../../shared/schemas';
 
 test.describe('GET /api/books', () => {
   test('API-001 returns the catalog in the documented list envelope', async ({

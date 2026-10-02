@@ -6,7 +6,7 @@ import {
   bookListEnvelopeSchema,
   expectError,
   expectSchema,
-} from '../schemas';
+} from '../../shared/schemas';
 
 test.describe('Boundary values', () => {
   test('API-070 accepts every field at its minimum', async ({ request }) => {

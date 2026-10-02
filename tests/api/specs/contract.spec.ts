@@ -3,12 +3,15 @@ import { SEED } from '../../shared/seed-facts';
 import { GENRES } from '../../shared/types';
 import { expect, test } from '../fixtures/test';
 import {
+  bookEnvelopeSchema,
   bookListEnvelopeSchema,
+  errorEnvelopeSchema,
   expectError,
   expectSchema,
   healthEnvelopeSchema,
   metaEnvelopeSchema,
-} from '../schemas';
+  parseBody,
+} from '../../shared/schemas';
 
 const MISSING_ID = 'bk_000000';
 
@@ -85,7 +88,12 @@ test.describe('Error contract', () => {
     ];
 
     for (const { response, status } of responses) {
-      await expectError(response, status, (await response.json()).error.code);
+      const body = parseBody(
+        errorEnvelopeSchema,
+        await response.json(),
+        'error envelope',
+      );
+      await expectError(response, status, body.error.code);
       expect(response.status()).toBe(status);
     }
   });
@@ -182,13 +190,17 @@ test.describe('Tenant isolation', () => {
       data: bookInput({ title: 'Private To Tenant One' }),
     });
     expect(created.status()).toBe(201);
-    const { data } = await created.json();
+    const { data } = parseBody(bookEnvelopeSchema, await created.json(), 'created book');
 
     const fromOther = await second.get(`/api/books/${data.id}`);
     expect(fromOther.status()).toBe(404);
 
     const otherList = await second.get('/api/books', { params: { limit: 100 } });
-    const otherBody = await otherList.json();
+    const otherBody = parseBody(
+      bookListEnvelopeSchema,
+      await otherList.json(),
+      'other tenant list',
+    );
     expect(otherBody.meta.total).toBe(SEED.totalBooks);
 
     await first.dispose();
@@ -210,10 +222,16 @@ test.describe('Tenant isolation', () => {
 
     await first.post('/api/test/reset', { data: { seed: false } });
 
-    const firstList = await (await first.get('/api/books')).json();
-    const secondList = await (
-      await second.get('/api/books', { params: { limit: 100 } })
-    ).json();
+    const firstList = parseBody(
+      bookListEnvelopeSchema,
+      await (await first.get('/api/books')).json(),
+      'reset tenant list',
+    );
+    const secondList = parseBody(
+      bookListEnvelopeSchema,
+      await (await second.get('/api/books', { params: { limit: 100 } })).json(),
+      'untouched tenant list',
+    );
 
     expect(firstList.meta.total).toBe(0);
     expect(secondList.meta.total).toBe(SEED.totalBooks);

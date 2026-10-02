@@ -1,4 +1,4 @@
-import { test as base, expect, type BrowserContext } from '@playwright/test';
+import { test as base, expect } from '@playwright/test';
 import { BookstoreApi } from '../../shared/api-client';
 import { newTenantId, TENANT_HEADER } from '../../shared/factories';
 import { BookDetailPage } from '../pages/book-detail.page';
@@ -24,7 +24,7 @@ export const test = base.extend<Fixtures>({
   // makes — navigation and fetch alike — lands in this test's private dataset.
   context: async ({ context, tenantId }, use) => {
     await context.setExtraHTTPHeaders({ [TENANT_HEADER]: tenantId });
-    await use(context as BrowserContext);
+    await use(context);
   },
 
   api: async ({ playwright, baseURL, tenantId }, use) => {
