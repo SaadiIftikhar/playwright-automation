@@ -20,9 +20,9 @@ WebKit, green in CI on every push and pull request.
 
 ## Quick start
 
-**You need:** [Node.js](https://nodejs.org) 20 or newer (this repo is built on
-24; `.nvmrc` pins the CI version) and Git. Nothing else — no database, no Docker,
-no accounts, no environment variables.
+**You need:** [Node.js](https://nodejs.org) 20 or newer and Git. Nothing else —
+no database, no Docker, no accounts, no environment variables. CI runs Node 22
+(pinned in `.nvmrc`); this was developed on 24.
 
 ```bash
 git clone https://github.com/SaadiIftikhar/playwright-automation-portfolio.git
@@ -36,9 +36,9 @@ npm test          # runs the UI suite, then the API suite
 Both steps are needed: **`npm ci` alone does not download browsers**, which is
 the most common reason a fresh clone fails to run.
 
-The first run downloads roughly 500 MB of browser binaries and takes a few
-minutes. Everything after that is quick — the UI suite finishes in about 22
-seconds and the API suite in under 3.
+The first run downloads the browser binaries — around 1 GB once all three are
+installed — and takes a few minutes. Everything after that is quick: the UI
+suite finishes in about 30 seconds and the API suite in about 3.
 
 You do not need to start the application yourself. Playwright's `webServer`
 starts it before the tests and shuts it down afterwards. To browse it by hand:
@@ -66,19 +66,20 @@ npm start         # http://127.0.0.1:3000
 Run a single documented case by its ID:
 
 ```bash
-npm run test:ui -- --grep BK-003
+npm run test:ui -- --grep BK-003     # 3 runs: this one is tagged @core
 npm run test:api -- --grep API-049
 ```
 
 ### If something goes wrong
 
-| Symptom                                        | Cause and fix                                                                          |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `browserType.launch: Executable doesn't exist` | Browsers were not installed. Run `npx playwright install --with-deps`.                 |
-| `EADDRINUSE` on port 3000                      | Something else holds the port. Free it, or run on another: `PORT=3100 npm test`.       |
-| `npm ci` fails on lockfile mismatch            | Your Node is older than 20. Check with `node --version`.                               |
-| WebKit fails to start on Linux                 | Missing system libraries. Run `npx playwright install-deps`.                           |
-| Tests pass locally, fail in CI                 | CI runs with `retries: 2` and fewer workers. Reproduce with `CI=true npm run test:ui`. |
+| Symptom                                            | Cause and fix                                                                                                          |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `browserType.launch: Executable doesn't exist`     | Browsers were not installed. Run `npx playwright install --with-deps`.                                                 |
+| `EADDRINUSE` on port 3000                          | Something else holds the port. Free it, or run on another: `PORT=3100 npm test`.                                       |
+| `npm error ... engine ... Unsupported engine`      | Your Node is older than 20. Check with `node --version`.                                                               |
+| `npm.ps1 cannot be loaded ... scripts is disabled` | Windows PowerShell execution policy. Use `npm.cmd test`, or run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`. |
+| WebKit fails to start on Linux                     | Missing system libraries. Run `npx playwright install-deps`.                                                           |
+| Tests pass locally, fail in CI                     | CI runs with `retries: 2` and fewer workers. Reproduce with `CI=true npm run test:ui`.                                 |
 
 ---
 
@@ -121,16 +122,16 @@ app/
   server/            Express API, validation, tenant-scoped store
   public/            Four views, no framework, no build step
 tests/
-  shared/            Typed API client, data factories, network gating
+  shared/            Typed API client, zod schemas, data factories, network gating
   ui/
     pages/           Page objects
     components/      Nav, book form dialog, confirm dialog
     fixtures/        Tenant, API client and page object fixtures
     specs/           8 spec files, 104 cases
   api/
-    schemas/         zod contracts and assertion helpers
     fixtures/        Tenant-scoped request fixture
     specs/           6 spec files, 117 cases
+scripts/             Report landing page, test case inventory generator
 docs/                Test cases, strategy, defect log
 ```
 
@@ -146,7 +147,7 @@ a fresh tenant id and applies it to both the browser context and the API client:
 
 ```ts
 context: async ({ context, tenantId }, use) => {
-  await context.setExtraHTTPHeaders({ 'x-test-tenant': tenantId });
+  await context.setExtraHTTPHeaders({ [TENANT_HEADER]: tenantId });
   await use(context);
 },
 ```
@@ -190,6 +191,12 @@ const body = await expectSchema(response, bookListEnvelopeSchema, 200);
 expect(body.meta.total).toBe(SEED.totalBooks);
 ```
 
+The seeding client used by the UI tests parses through the same schemas, so its
+declared return types are proven rather than asserted. Type-aware lint
+(`@typescript-eslint/no-floating-promises`) covers the other half: a forgotten
+`await` on an assertion means the assertion never runs and the test passes
+anyway, which is the most expensive mistake available in a Playwright suite.
+
 ### Role-based locators
 
 `getByRole` and `getByLabel` throughout — the same way a user or a screen reader
@@ -231,7 +238,7 @@ Full case-by-case inventory with IDs: **[docs/TEST-CASES.md](docs/TEST-CASES.md)
 | ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Reads      | 17    | List envelope, pagination, every filter, both sort directions, page past the end, single fetch, ISO timestamps                                                           |
 | Writes     | 13    | 201 with `Location`, read-after-write, full replace, partial update, timestamp handling, 204 delete                                                                      |
-| Validation | 26    | Every required field individually, wrong types, invalid enums, malformed ISBN, duplicate ISBN, malformed JSON, wrong content type, unknown fields, query parameter rules |
+| Validation | 32    | Every required field individually, wrong types, invalid enums, malformed ISBN, duplicate ISBN, malformed JSON, wrong content type, unknown fields, query parameter rules |
 | Edge cases | 22    | Boundaries and one past them, empty and whitespace strings, sub-cent precision, unicode, SQL and markup strings, oversized payload, page-size limits                     |
 | Cart       | 17    | Full lifecycle, stock ceiling including what is already in the cart, invalid quantities, 404s                                                                            |
 | Contract   | 16    | 404 on all four verbs, unknown routes, one error envelope everywhere, JSON content type, health and meta, tenant isolation                                               |
@@ -242,14 +249,14 @@ Full case-by-case inventory with IDs: **[docs/TEST-CASES.md](docs/TEST-CASES.md)
 
 Every push and pull request runs three jobs in parallel:
 
-- **Lint, format and types** — ESLint with the Playwright plugin, Prettier, `tsc --noEmit`
-- **API tests** — no browser install at all, so it finishes in under a minute
-- **UI tests** — browsers cached by Playwright version
+- **Lint, format and types** — ESLint with the Playwright plugin and type-aware rules, Prettier, `tsc --noEmit` (~25s)
+- **API tests** — no browser install at all, so it finishes in well under a minute (~25s)
+- **UI tests** — all three browsers, binaries cached by Playwright version (~1m30s)
 
-Both suites upload their HTML report as an artifact. Traces and screenshots are
-captured **only on failure**, so a green run uploads almost nothing. On `main`,
-both reports are published to GitHub Pages behind a small landing page, so the
-results can be read without cloning anything.
+A fourth job then publishes the reports. Both suites upload their HTML report as
+an artifact, and traces and screenshots are captured **only on failure**, so a
+green run uploads almost nothing. On `main`, both reports go to GitHub Pages
+behind a small landing page, so results can be read without cloning anything.
 
 ---
 
@@ -266,7 +273,3 @@ results can be read without cloning anything.
 ## Built with
 
 Playwright · TypeScript · zod · axe-core · Express · ESLint · Prettier · GitHub Actions
-
-## Licence
-
-[MIT](LICENSE)
