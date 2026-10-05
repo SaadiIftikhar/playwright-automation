@@ -1,6 +1,6 @@
 # Playwright Automation Portfolio
 
-[![Tests](https://github.com/SaadiIftikhar/playwright-automation-portfolio/actions/workflows/tests.yml/badge.svg)](https://github.com/SaadiIftikhar/playwright-automation-portfolio/actions/workflows/tests.yml)
+[![Tests](https://github.com/SaadiIftikhar/playwright-automation/actions/workflows/tests.yml/badge.svg)](https://github.com/SaadiIftikhar/playwright-automation/actions/workflows/tests.yml)
 
 A Playwright test automation project covering both UI and API testing, built
 against a demo bookstore application that ships inside this repository.
@@ -12,7 +12,7 @@ different tomorrow.
 **221 test cases** — 104 UI and 117 API — running on Chromium, Firefox and
 WebKit, green in CI on every push and pull request.
 
-📊 **[Browse the latest test report](https://saadiiftikhar.github.io/playwright-automation-portfolio/)** — published from `main`, no clone required.
+📊 **[Browse the latest test report](https://saadiiftikhar.github.io/playwright-automation/)** — published from `main`, no clone required.
 
 ![The catalog page of the demo bookstore](docs/images/catalog.png)
 
@@ -25,8 +25,8 @@ no database, no Docker, no accounts, no environment variables. CI runs Node 22
 (pinned in `.nvmrc`); this was developed on 24.
 
 ```bash
-git clone https://github.com/SaadiIftikhar/playwright-automation-portfolio.git
-cd playwright-automation-portfolio
+git clone https://github.com/SaadiIftikhar/playwright-automation.git
+cd playwright-automation
 
 npm run setup     # installs dependencies and the three browsers
 npm test          # runs the UI suite, then the API suite
